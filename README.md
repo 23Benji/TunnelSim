@@ -1,11 +1,8 @@
 # Tunnel Visitor Simulation
 
-*(Optional: Add a brief one-line tagline here if you like)*
-
 <p align="center">
-  <img src="screenshots/client-gui.png" alt="Client GUI Screenshot" width="600">
+  <img src="img/img.png" alt="Client GUI Screenshot">
 </p>
-*(Caption: Example of the Entrance Client GUI)*
 
 ## Project Description
 

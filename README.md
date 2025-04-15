@@ -1,11 +1,8 @@
 # Tunnel Visitor Simulation
 
-*(Optional: Add a brief one-line tagline here if you like)*
-
 <p align="center">
-  <img src="screenshots/client-gui.png" alt="Client GUI Screenshot" width="600">
+  <img src="img/img.png" alt="Client GUI Screenshot">
 </p>
-*(Caption: Example of the Entrance Client GUI)*
 
 ## Project Description
 
@@ -47,42 +44,41 @@ This Java application simulates this system, with graphical clients representing
 *   **Networking:** Java Sockets (`java.net.Socket`, `java.net.ServerSocket`)
 *   **GUI:** Java Swing (using Nimbus Look & Feel)
 *   **Concurrency:** Java Threads, `synchronized`, `wait`/`notifyAll`
-
 ## Setup and Running
 
 1.  **Prerequisites:**
-    *   Java Development Kit (JDK) version 8 or higher installed and configured (check with `java -version` and `javac -version`).
+    *   Java Development Kit (JDK) version 8 or higher installed and configured. You can check with `java -version` and `javac -version` in your terminal.
+    *   A Java IDE (like IntelliJ IDEA, Eclipse, VS Code with Java extensions) is recommended for the easiest setup.
 
-2.  **Compilation:**
-    *   Navigate to the project's root directory (the one containing the `tunnel` folder) in your terminal or command prompt.
-    *   Compile the Java source files:
+2.  **Running the Application (IDE - Recommended):**
+    *   Import the project into your IDE.
+    *   **Start the Server:**
+        *   Locate the `tunnel.server.ServerMain` class (or your specific server main class).
+        *   Run this class (e.g., right-click -> Run 'ServerMain.main()' or use the IDE's run button).
+        *   The server's console output will appear in the IDE's console/run window. It needs to be running before clients connect.
+    *   **Start the Clients:**
+        *   Locate the `tunnel.client.ClientForm` class.
+        *   Run this class using the same method as the server **only once**.
+        *   **Important:** This single execution of `ClientForm.main()` is designed to launch **both** client GUIs ("Entrance 1" and "Entrance 2"), positioning them side-by-side.
+    *   You should now have the server running (output visible in the IDE) and the two client windows ready for interaction.
+
+3.  **Running the Application (Terminal - Alternative):**
+    *   **Compile (if necessary):** Open a terminal/command prompt in the project's root directory (containing the `tunnel` folder). If you haven't compiled using an IDE, run:
         ```bash
-        # On Windows (adjust path separator if needed)
-        javac tunnel\server\*.java tunnel\client\*.java
-
-        # On Linux/macOS
-        javac tunnel/server/*.java tunnel/client/*.java
+        # On Windows: javac tunnel\server\*.java tunnel\client\*.java
+        # On Linux/macOS: javac tunnel/server/*.java tunnel/client/*.java
         ```
-    *   This will create `.class` files within their respective package directories.
-
-3.  **Running the Application:**
-    *   **Start the Server:** Run the server component first. It will listen for client connections.
-        ```bash
-        java tunnel.server.TunnelServer
-        ```
-        *(Note: Replace `TunnelServer` with the actual name of your server's main class if different)*
-    *   **Start the Clients (Entrances):** Open **two separate** terminal/command prompt windows. In each window, run the client application. The `main` method is designed to launch two instances side-by-side if run once, but running it explicitly twice ensures separate processes if needed.
-        ```bash
-        # In the first client terminal
-        java tunnel.client.ClientForm
-
-        # In the second client terminal
-        java tunnel.client.ClientForm
-        ```
-        *(The code should automatically position the second window next to the first one)*
-
-    *   You should now have the server running (likely just showing console output) and two client GUI windows ("Entrance 1" and "Entrance 2") on your screen. You can interact with each client independently to request and finish visits.
-
+    *   **Run:**
+        *   **Start Server:** In the terminal, run:
+            ```bash
+            java tunnel.server.ServerMain
+            ```
+            *(Replace `ServerMain` if your server class has a different name)*
+        *   **Start Clients:** Open **one separate** terminal window and run:
+            ```bash
+            java tunnel.client.ClientForm
+            ```
+            *(This single command will launch both client GUIs side-by-side)*
 ## Potential Future Improvements
 
 *   Implement simulated visit durations.

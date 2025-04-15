@@ -29,7 +29,7 @@ public class VisitorsMonitor {
         while (availableVisitors < count) {
             try {
                 wait();
-            }catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 throw new InterruptedException();
             }
         }

@@ -3,53 +3,99 @@ package tunnel.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 
 /**
- * In dieser Konsolenanwendung wird zuerst ein VisitorsMonitor angelegt, und dann
- * wartet das Programm in einer Endlosschleife auf Clientanfragen. Erreicht ihm
- * eine solche, so wird diese in einem Thread vom Typ ServerThread abgearbeitet.
- * Dadurch dass jede Anfrage in einem eigenen Thread abgearbeitet wird,
- * können mehrere Anfragen gleichzeitig bearbeitet werden.
+ * Server main application. Creates a VisitorsMonitor, listens for client
+ * connections, and handles them in separate ServerThreads.
+ * (Admin console removed).
  */
 public class ServerMain {
-	/**
-	 * Port an welchem der Server arbeitet
-	 */
-	protected static final int PORT = 65535;
-	protected static VisitorsMonitor visitorsMonitor = null;
 
-	/**
-	 * Besuchermonitor wird angelegt, und in einer Endlosschleife wird auf
-	 * Clientanfragen gewartet, welche alle über einzelne ServerThreads abgearbeitet
-	 * werden. Dadurch dass jede Anfrage in einem eigenen Thread abgearbeitet wird,
-	 * können mehrere Anfragen gleichzeitig bearbeitet werden.
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		visitorsMonitor = new VisitorsMonitor();
+    protected static final int PORT = 65535;
+    protected static VisitorsMonitor visitorsMonitor = null;
+    private static volatile boolean serverIsRunning = true;
+    private static ServerSocket serverSocket = null;
 
-		try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-			System.out.println("Server gestartet. Wartet auf Verbindungen...");
+    /**
+     * Initializes monitor, starts the server socket, handles client connections.
+     *
+     * @param args Command line arguments (not used).
+     */
+    public static void main(String[] args) {
+        visitorsMonitor = new VisitorsMonitor();
 
-			while (true) {
-				try {
-					Socket clientSocket = serverSocket.accept();
-					new ServerThread(clientSocket, visitorsMonitor).start();
-				} catch (IOException e) {
-					behandleException(e);
-				}
-			}
-		} catch (IOException e) {
-			behandleException(e);
-		}
-	}
 
-	/**
-	 * Methode zur Exceptionbehandlung
-	 * @param e
-	 */
-	public static void behandleException(Exception e) {
-		System.err.println("Fehler: " + e.getMessage());
-		e.printStackTrace();
-	}
+        try {
+            serverSocket = new ServerSocket(PORT);
+            System.out.println("====== Server started on port " + PORT + " =======");
+            System.out.println("Waiting for client connections... (Stop with Ctrl+C)");
+
+            while (serverIsRunning) {
+                try {
+                    Socket clientSocket = serverSocket.accept();
+
+                    if (serverIsRunning) {
+                        new ServerThread(clientSocket, visitorsMonitor).start();
+                    } else {
+                        try {
+                            clientSocket.close();
+                        } catch (IOException ioex) {
+                        }
+                        break;
+                    }
+
+                } catch (SocketException se) {
+                    if (serverIsRunning) {
+                        System.err.println("SocketException during accept: " + se.getMessage());
+                    } else {
+                        System.out.println("Accept loop interrupted, server stopping.");
+                        break;
+                    }
+                } catch (IOException e) {
+                    if (serverIsRunning) {
+                        behandleException(e);
+                    }
+                } catch (Exception e) {
+                    if (serverIsRunning) {
+                        System.err.println("Unexpected error in connection accept loop:");
+                        behandleException(e);
+                    }
+                }
+            }
+
+        } catch (IOException e) {
+            System.err.println("FATAL: Could not listen on port " + PORT);
+            behandleException(e);
+            serverIsRunning = false;
+        } finally {
+            System.out.println("Server main loop finished.");
+            closeServerSocket();
+            System.out.println("Server resources potentially closed.");
+        }
+    }
+
+
+    private static synchronized void closeServerSocket() {
+        if (serverSocket != null && !serverSocket.isClosed()) {
+            try {
+                System.out.println("Closing server socket...");
+                serverSocket.close();
+            } catch (IOException e) {
+                System.err.println("Error closing server socket: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        serverSocket = null;
+    }
+
+    /**
+     * Methode zur Exceptionbehandlung
+     *
+     * @param e The exception to handle.
+     */
+    public static void behandleException(Exception e) {
+        System.err.println("Error: " + e.getMessage());
+        e.printStackTrace();
+    }
 }

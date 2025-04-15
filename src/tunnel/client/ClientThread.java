@@ -112,7 +112,8 @@ public class ClientThread extends Thread
 					checkOut.writeInt(0); // Send 0 to indicate capacity check
 					checkOut.flush();
 					int currentCapacity = checkIn.readInt(); // Renamed available
-					clientForm.updateAvailableCapacity(currentCapacity);
+					clientForm.UpdateVisitors(String.valueOf(currentCapacity));
+
 
 				} catch (IOException e) {
 					// Original code had an empty catch block here for capacity check failures.
@@ -137,15 +138,15 @@ public class ClientThread extends Thread
 					int endResponseCode = endIn.readInt(); // Renamed response
 
 					if (endResponseCode == numVisitorsExiting) {
-						clientForm.updateStatus("Visit with " + numVisitorsExiting + " visitors finished");
+						clientForm.refreshStatus("Visit with " + numVisitorsExiting + " visitors finished");
 					} else {
 						// Simplified original comment
-						clientForm.updateStatus("Err:Server did not confirm end correctly (Code: " + endResponseCode +")");
+						clientForm.refreshStatus("Error:Server did not confirm end correctly (Code: " + endResponseCode +")");
 					}
 				} catch (UnknownHostException e) {
-					clientForm.updateStatus("Err:Server not found (end request).");
+					clientForm.refreshStatus("Error:Server not found (end request).");
 				} catch (IOException e) {
-					clientForm.updateStatus("Err:Network error (end): " + e.getMessage());
+					clientForm.refreshStatus("Error:Network error (end): " + e.getMessage());
 				}
 			}
 			// --- Case: Start Visit (count > 0) ---
@@ -158,36 +159,36 @@ public class ClientThread extends Thread
 					 DataOutputStream startOut = new DataOutputStream(startSocket.getOutputStream()); // Renamed out
 					 DataInputStream startIn = new DataInputStream(startSocket.getInputStream())) { // Renamed in
 
-					clientForm.updateStatus("Visit with " + count + " visitors requested...");
+					clientForm.refreshStatus("Visit with " + count + " visitors requested...");
 					startOut.writeInt(count); // Send the positive visitor count
 					startOut.flush();
 					int startResponseCode = startIn.readInt(); // Renamed response
 
 					if (startResponseCode == count) {
-						clientForm.updateStatus("Visit with " + count + " visitors enter the tunnel");
-						clientForm.addActiveVisitEntry(count);
+						clientForm.refreshStatus("Visit with " + count + " visitors enter the tunnel");
+						clientForm.displayNewVisit(count);
 						// If successful, the monitor lock is conceptually "held" by the visit now.
 						// This thread is no longer responsible for releasing it *unless* an error occurred below.
 						// Setting the flag false signifies this thread doesn't need to release in normal exit.
 						monitorLockObtained = false;
 					} else if (startResponseCode == -1) {
-						clientForm.updateStatus("Err:Server error during start request.");
+						clientForm.refreshStatus("Error:Server error during start request.");
 						guidesMonitor.release(); // Release monitor due to server error
 						monitorLockObtained = false; // Mark lock as released
 					} else {
-						clientForm.updateStatus("Err:Server denied start request (Code: " + startResponseCode + ")");
+						clientForm.refreshStatus("Error:Server denied start request (Code: " + startResponseCode + ")");
 						guidesMonitor.release(); // Release monitor due to denial
 						monitorLockObtained = false; // Mark lock as released
 					}
 				} catch (UnknownHostException e) {
-					clientForm.updateStatus("Err:Server not found: " + HOST + ":" + PORT);
+					clientForm.refreshStatus("Error:Server not found: " + HOST + ":" + PORT);
 					// Clean up monitor lock if acquired before the network error
 					if (monitorLockObtained) {
 						guidesMonitor.release();
 						monitorLockObtained = false;
 					}
 				} catch (IOException e) {
-					clientForm.updateStatus("Err:Network error (start): " + e.getMessage());
+					clientForm.refreshStatus("Error:Network error (start): " + e.getMessage());
 					// Clean up monitor lock if acquired before the network error
 					if (monitorLockObtained) {
 						guidesMonitor.release();
@@ -199,14 +200,14 @@ public class ClientThread extends Thread
 				// because it was explicitly released and set.
 			}
 		} catch (InterruptedException e) {
-			clientForm.updateStatus("Err:Operation interrupted (waiting for guide?).");
+			clientForm.refreshStatus("Error:Operation interrupted (waiting for guide?).");
 			Thread.currentThread().interrupt(); // Preserve interrupt status
 			// Ensure monitor is released if interrupted while holding the lock
 			if (monitorLockObtained) {
 				guidesMonitor.release();
 			}
 		} catch (Exception e) {
-			clientForm.updateStatus("Err:Unexpected client thread error: " + e.getMessage());
+			clientForm.refreshStatus("Error:Unexpected client thread error: " + e.getMessage());
 			// Ensure monitor is released if an unexpected error occurs while holding the lock
 			if (monitorLockObtained) {
 				guidesMonitor.release();

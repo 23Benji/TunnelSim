@@ -400,7 +400,7 @@ public class ClientForm extends JFrame {
     }
 
     /**
-     * Appends a message to the status area, ensuring EDT execution.
+     * Appends a message to the status area, ensuring EDT (Event Display Thread) execution.
      */
     public void refreshStatus(String statusUpdate) {
         String timestamp = LocalTime.now().format(TIME_FORMATTER);
